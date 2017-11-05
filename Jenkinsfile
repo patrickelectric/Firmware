@@ -1,23 +1,31 @@
 pipeline {
   agent {
     docker {
-      image 'px4io/px4-dev-simulation:2017-09-26'
-      args '--env CCACHE_DISABLE=1 --env CI=true'
+      image 'px4io/px4-dev-base:2017-08-29'
     }
+    
   }
   stages {
     stage('Quality Checks') {
+      agent any
       steps {
         sh 'make check_format'
       }
     }
     stage('Build') {
-          steps {
-            sh 'make nuttx_px4fmu-v2_default'
-            archiveArtifacts 'build/*/*.px4'
-          }
+      agent {
+        docker {
+          image 'px4io/px4-dev-nuttx:2017-08-29'
+        }
+        
+      }
+      steps {
+        sh 'make nuttx_px4fmu-v2_default'
+        archiveArtifacts 'build/*/*.px4'
+      }
     }
     stage('Test') {
+      agent any
       steps {
         sh 'make posix_sitl_default test_results_junit'
         junit 'build/posix_sitl_default/JUnitTestResults.xml'
