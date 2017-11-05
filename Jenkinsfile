@@ -24,7 +24,15 @@ pipeline {
                           builds["${node_name} ${option_inside}"] = {
                               node {
                                   stage("Build Test ${node_name} ${option_inside}") {
+                                    agent {
+                                      docker {
+                                        image 'px4io/px4-dev-base:2017-10-23'
+                                        args '--env CCACHE_DISABLE=1 --env CI=true'
+                                      }
+                                    }
+                                    steps {
                                       sh 'ping -c 10 localhost'
+                                    }
                                   }
                               }
                           }
@@ -57,58 +65,6 @@ pipeline {
           steps {
             sh 'make clean'
             sh 'make nuttx_px4fmu-v2_default'
-            archive 'build/*/*.px4'
-          }
-        }
-        stage('nuttx_px4fmu-v3_default') {
-          agent {
-            docker {
-              image 'px4io/px4-dev-nuttx:2017-10-23'
-              args '--env CCACHE_DISABLE=1 --env CI=true'
-            }
-          }
-          steps {
-            sh 'make clean'
-            sh 'make nuttx_px4fmu-v2_default'
-            archive 'build/*/*.px4'
-          }
-        }
-        stage('nuttx_px4fmu-v4_default') {
-          agent {
-            docker {
-              image 'px4io/px4-dev-nuttx:2017-10-23'
-              args '--env CCACHE_DISABLE=1 --env CI=true'
-            }
-          }
-          steps {
-            sh 'make clean'
-            sh 'make nuttx_px4fmu-v2_default'
-            archive 'build/*/*.px4'
-          }
-        }
-        stage('nuttx_px4fmu-v4pro_default') {
-          agent {
-            docker {
-              image 'px4io/px4-dev-nuttx:2017-10-23'
-              args '--env CCACHE_DISABLE=1 --env CI=true'
-            }
-          }
-          steps {
-            sh 'make clean'
-            sh 'make nuttx_px4fmu-v2_default'
-            archive 'build/*/*.px4'
-          }
-        }
-        stage('nuttx_px4fmu-v5_default') {
-          agent {
-            docker {
-              image 'px4io/px4-dev-nuttx:2017-10-23'
-              args '--env CCACHE_DISABLE=1 --env CI=true'
-            }
-          }
-          steps {
-            sh 'make clean'
-            sh 'make nuttx_px4fmu-v5_default'
             archive 'build/*/*.px4'
           }
         }
