@@ -12,35 +12,22 @@ pipeline {
                   def builds = [:]
 
                   for (def option in ["one", "two"]) {
-                          def node_name = ""
-                          if ("one" == "${option}") {
-                              node_name = "node001"
-                          } else {
-                              node_name = "node002"
-                          }
-                          
-                          def option_inside = "${option}"
-                          
-                          builds["${node_name} ${option_inside}"] = {
-                              node {
-                                  stage("Build Test ${node_name} ${option_inside}") {
-                                    agent {
-                                      docker {
-                                        image 'px4io/px4-dev-base:2017-10-23'
-                                        args '--env CCACHE_DISABLE=1 --env CI=true'
-                                      }
-                                    }
-                                    steps {
-                                      sh 'ping -c 10 localhost'
-                                    }
-                                  }
+                          builds["${option}"] = {
+                              agent {
+                                docker {
+                                  image 'px4io/px4-dev-base:2017-10-23'
+                                  args '--env CCACHE_DISABLE=1 --env CI=true'
+                                }
                               }
-                          }
+                              steps {
+                                sh 'ping -c 10 localhost'
+                              }
+                            }
+                        }
                   }
                   parallel builds
                 }
             }
-        }
     stage('Build') {
       parallel {
         stage('posix_sitl_default') {
