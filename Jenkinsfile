@@ -6,6 +6,33 @@ pipeline {
     timestamps()
   }
   stages {
+        stage("Build/Test") {
+            steps {
+                script {
+                  def builds = [:]
+
+                  for (def option in ["one", "two"]) {
+                          def node_name = ""
+                          if ("one" == "${option}") {
+                              node_name = "node001"
+                          } else {
+                              node_name = "node002"
+                          }
+                          
+                          def option_inside = "${option}"
+                          
+                          builds["${node_name} ${option_inside}"] = {
+                              node {
+                                  stage("Build Test ${node_name} ${option_inside}") {
+                                      sh 'ping -c 10 localhost'
+                                  }
+                              }
+                          }
+                  }
+                  parallel builds
+                }
+            }
+        }
     stage('Build') {
       parallel {
         stage('posix_sitl_default') {
