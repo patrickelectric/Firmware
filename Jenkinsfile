@@ -1,10 +1,5 @@
 pipeline {
   agent none
-  options {
-    buildDiscarder(logRotator(numToKeepStr: '20'))
-    timeout(time: 10, unit: 'MINUTES')
-    timestamps()
-  }
   stages {
     stage('Build') {
       parallel {
@@ -14,9 +9,11 @@ pipeline {
               image 'px4io/px4-dev-base:2017-10-23'
               args '--env CCACHE_DISABLE=1 --env CI=true'
             }
+            
           }
           steps {
-            sh 'make posix_sitl_default'
+            sh '''make clean
+make posix_sitl_default'''
           }
         }
         stage('nuttx_px4fmu-v2_default') {
@@ -25,10 +22,13 @@ pipeline {
               image 'px4io/px4-dev-nuttx:2017-10-23'
               args '--env CCACHE_DISABLE=1 --env CI=true'
             }
+            
           }
           steps {
-            sh 'make nuttx_px4fmu-v2_default'
+            sh '''make clean;
+make nuttx_px4fmu-v2_default;'''
             archive 'build/*/*.px4'
+            sh 'make clean'
           }
         }
         stage('nuttx_px4fmu-v5_default') {
@@ -37,10 +37,12 @@ pipeline {
               image 'px4io/px4-dev-nuttx:2017-10-23'
               args '--env CCACHE_DISABLE=1 --env CI=true'
             }
+            
           }
           steps {
             sh 'make nuttx_px4fmu-v5_default'
             archive 'build/*/*.px4'
+            sh 'make clean'
           }
         }
       }
@@ -53,6 +55,7 @@ pipeline {
               image 'px4io/px4-dev-base:2017-10-23'
               args '--env CCACHE_DISABLE=1 --env CI=true'
             }
+            
           }
           steps {
             sh 'make check_format'
@@ -64,6 +67,7 @@ pipeline {
               image 'px4io/px4-dev-clang:2017-10-23'
               args '--env CCACHE_DISABLE=1 --env CI=true'
             }
+            
           }
           steps {
             sh 'make clang-tidy-quiet'
@@ -75,6 +79,7 @@ pipeline {
               image 'px4io/px4-dev-base:2017-10-23'
               args '--env CCACHE_DISABLE=1 --env CI=true'
             }
+            
           }
           steps {
             sh 'make posix_sitl_default test_results_junit'
@@ -88,6 +93,7 @@ pipeline {
         docker {
           image 'px4io/px4-dev-base:2017-10-23'
         }
+        
       }
       steps {
         sh 'make airframe_metadata'
@@ -103,6 +109,7 @@ pipeline {
         docker {
           image 'px4io/px4-dev-base:2017-10-23'
         }
+        
       }
       when {
         branch '*/master|*/beta|*/stable'
@@ -114,7 +121,14 @@ pipeline {
   }
   post {
     always {
-      deleteDir() /* clean up our workspace */
+      deleteDir()
+      
     }
+    
+  }
+  options {
+    buildDiscarder(logRotator(numToKeepStr: '20'))
+    timeout(time: 10, unit: 'MINUTES')
+    timestamps()
   }
 }
