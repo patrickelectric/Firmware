@@ -1,31 +1,42 @@
 pipeline {
-  agent {
-    docker {
-      image 'px4io/px4-dev-base:2017-08-29'
-    }
-    
-  }
+  agent none
   stages {
     stage('Quality Checks') {
-      agent any
+      agent {
+        docker {
+          image 'px4io/px4-dev-base:2017-10-23'
+          args '--env CCACHE_DISABLE=1 --env CI=true'
+        }
+      }
       steps {
         sh 'make check_format'
       }
     }
     stage('Build') {
-      agent {
-        docker {
-          image 'px4io/px4-dev-nuttx:2017-08-29'
+      parallel {
+        stage('posix_sitl_default') {
+          agent { docker { image 'px4io/px4-dev-base:2017-10-23' } }
+          steps {
+            sh 'make posix_sitl_default'
+          }
         }
-        
-      }
-      steps {
-        sh 'make nuttx_px4fmu-v2_default'
-        archiveArtifacts 'build/*/*.px4'
+        stage('nuttx_px4fmu-v2_default') {
+          agent { docker { image 'px4io/px4-dev-nuttx:2017-10-23' } }
+          steps {
+            sh 'make nuttx_px4fmu-v2_default'
+            archive 'build/*/*.px4'
+          }
+        }
+        stage('nuttx_px4fmu-v5_default') {
+          agent { docker { image 'px4io/px4-dev-nuttx:2017-10-23' } }
+          steps {
+            sh 'make nuttx_px4fmu-v5_default'
+            archive 'build/*/*.px4'
+          }
+        }
       }
     }
     stage('Test') {
-      agent any
       steps {
         sh 'make posix_sitl_default test_results_junit'
         junit 'build/posix_sitl_default/JUnitTestResults.xml'
@@ -34,26 +45,30 @@ pipeline {
     stage('Generate Metadata') {
       parallel {
         stage('airframe') {
+          agent { docker { image 'px4io/px4-dev-base:2017-10-23' } }
           steps {
             sh 'make airframe_metadata'
-            archiveArtifacts 'airframes.md, airframes.xml'
+            archive 'airframes.md, airframes.xml'
           }
         }
         stage('parameters') {
+          agent { docker { image 'px4io/px4-dev-base:2017-10-23' } }
           steps {
             sh 'make parameters_metadata'
-            archiveArtifacts 'parameters.md, parameters.xml'
+            archive 'parameters.md, parameters.xml'
           }
         }
         stage('modules') {
+          agent { docker { image 'px4io/px4-dev-base:2017-10-23' } }
           steps {
             sh 'make module_documentation'
-            archiveArtifacts 'modules/*.md'
+            archive 'modules/*.md'
           }
         }
       }
     }
     stage('S3 Upload') {
+      agent { docker { image 'px4io/px4-dev-base:2017-10-23' } }
       when {
         branch 'master|beta|stable'
       }
@@ -61,5 +76,10 @@ pipeline {
         sh 'echo "uploading to S3"'
       }
     }
+  }
+  options {
+    buildDiscarder(logRotator(numToKeepStr:'20'))
+    timeout(time: 10, unit: 'MINUTES')
+    timestamps()
   }
 }
