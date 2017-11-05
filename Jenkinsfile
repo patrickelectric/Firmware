@@ -1,5 +1,10 @@
 pipeline {
   agent none
+  options {
+    buildDiscarder(logRotator(numToKeepStr: '20'))
+    timeout(time: 10, unit: 'MINUTES')
+    timestamps()
+  }
   stages {
     stage('Build') {
       parallel {
@@ -9,11 +14,10 @@ pipeline {
               image 'px4io/px4-dev-base:2017-10-23'
               args '--env CCACHE_DISABLE=1 --env CI=true'
             }
-            
           }
           steps {
-            sh '''make clean
-make posix_sitl_default'''
+            sh 'make clean'
+            sh 'make posix_sitl_default'
           }
         }
         stage('nuttx_px4fmu-v2_default') {
@@ -22,13 +26,50 @@ make posix_sitl_default'''
               image 'px4io/px4-dev-nuttx:2017-10-23'
               args '--env CCACHE_DISABLE=1 --env CI=true'
             }
-            
           }
           steps {
-            sh '''make clean;
-make nuttx_px4fmu-v2_default;'''
-            archive 'build/*/*.px4'
             sh 'make clean'
+            sh 'make nuttx_px4fmu-v2_default'
+            archive 'build/*/*.px4'
+          }
+        }
+        stage('nuttx_px4fmu-v3_default') {
+          agent {
+            docker {
+              image 'px4io/px4-dev-nuttx:2017-10-23'
+              args '--env CCACHE_DISABLE=1 --env CI=true'
+            }
+          }
+          steps {
+            sh 'make clean'
+            sh 'make nuttx_px4fmu-v2_default'
+            archive 'build/*/*.px4'
+          }
+        }
+        stage('nuttx_px4fmu-v4_default') {
+          agent {
+            docker {
+              image 'px4io/px4-dev-nuttx:2017-10-23'
+              args '--env CCACHE_DISABLE=1 --env CI=true'
+            }
+          }
+          steps {
+            sh 'make clean'
+            sh 'make nuttx_px4fmu-v2_default'
+            archive 'build/*/*.px4'
+          }
+        }
+        stage('nuttx_px4fmu-v4pro_default') {
+          agent {
+            docker {
+              image 'px4io/px4-dev-nuttx:2017-10-23'
+              args '--env CCACHE_DISABLE=1 --env CI=true'
+            }
+          }
+          steps {
+            sh 'make clean'
+            sh 'make nuttx_px4fmu-v2_default'
+            archive 'build/*/*.px4'
           }
         }
         stage('nuttx_px4fmu-v5_default') {
@@ -37,12 +78,11 @@ make nuttx_px4fmu-v2_default;'''
               image 'px4io/px4-dev-nuttx:2017-10-23'
               args '--env CCACHE_DISABLE=1 --env CI=true'
             }
-            
           }
           steps {
+            sh 'make clean'
             sh 'make nuttx_px4fmu-v5_default'
             archive 'build/*/*.px4'
-            sh 'make clean'
           }
         }
       }
@@ -55,7 +95,6 @@ make nuttx_px4fmu-v2_default;'''
               image 'px4io/px4-dev-base:2017-10-23'
               args '--env CCACHE_DISABLE=1 --env CI=true'
             }
-            
           }
           steps {
             sh 'make check_format'
@@ -67,7 +106,6 @@ make nuttx_px4fmu-v2_default;'''
               image 'px4io/px4-dev-clang:2017-10-23'
               args '--env CCACHE_DISABLE=1 --env CI=true'
             }
-            
           }
           steps {
             sh 'make clang-tidy-quiet'
@@ -79,7 +117,6 @@ make nuttx_px4fmu-v2_default;'''
               image 'px4io/px4-dev-base:2017-10-23'
               args '--env CCACHE_DISABLE=1 --env CI=true'
             }
-            
           }
           steps {
             sh 'make posix_sitl_default test_results_junit'
@@ -93,7 +130,6 @@ make nuttx_px4fmu-v2_default;'''
         docker {
           image 'px4io/px4-dev-base:2017-10-23'
         }
-        
       }
       steps {
         sh 'make airframe_metadata'
@@ -109,7 +145,6 @@ make nuttx_px4fmu-v2_default;'''
         docker {
           image 'px4io/px4-dev-base:2017-10-23'
         }
-        
       }
       when {
         branch '*/master|*/beta|*/stable'
@@ -118,17 +153,5 @@ make nuttx_px4fmu-v2_default;'''
         sh 'echo "uploading to S3"'
       }
     }
-  }
-  post {
-    always {
-      deleteDir()
-      
-    }
-    
-  }
-  options {
-    buildDiscarder(logRotator(numToKeepStr: '20'))
-    timeout(time: 10, unit: 'MINUTES')
-    timestamps()
   }
 }
