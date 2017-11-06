@@ -25,8 +25,8 @@ pipeline {
                               node {
                                   stage("Build Test ${node_name} ${option_inside}") {
                                     docker.image('px4io/px4-dev-base:2017-10-23').inside {
-                                      stage("Build posix_sitl_default") {
-                                        sh 'make posix_sitl_default'
+                                      stage("${node_name}") {
+                                        sh 'make clean; make posix_sitl_default'
                                       }
                                     }
                                   }
