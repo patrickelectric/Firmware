@@ -40,7 +40,7 @@ endif()
 add_custom_target(upload
 	COMMAND rsync -arh --progress -e "ssh -o StrictHostKeyChecking=no"
 			${CMAKE_RUNTIME_OUTPUT_DIRECTORY} ${PX4_SOURCE_DIR}/posix-configs/rpi/*.config ${PX4_BINARY_DIR}/etc # source
-			pi@${AUTOPILOT_HOST}:/home/pi/px4 # destination
+			pi@192.168.181.240:/home/pi/px4 # destination
 	DEPENDS px4
 	COMMENT "uploading px4"
 	USES_TERMINAL
