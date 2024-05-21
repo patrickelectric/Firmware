@@ -6,6 +6,7 @@ on:
     - 'main'
     - 'stable'
     - 'beta'
+    - 'create-artifacts'
   pull_request:
     branches:
     - '*'
