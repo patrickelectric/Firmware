@@ -17,9 +17,9 @@ jobs:
     strategy:
       matrix:
         docker: [
-          "px4io/px4-dev-aarch64:2024-05-18",
-          "px4io/px4-dev-armhf:2024-05-18",
-          "px4io/px4-dev-base-archlinux:2024-05-18",
+          #"px4io/px4-dev-aarch64:2022-08-12",
+          #"px4io/px4-dev-armhf:2023-06-26",
+          "px4io/px4-dev-nuttx-focal:2022-08-12",
         ]
     container: ${{matrix.docker}}
     steps:
